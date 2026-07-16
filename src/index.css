@@ -1,0 +1,38 @@
+@import 'tailwindcss';
+
+@theme {
+  --color-tum-blue: #0065bd;
+  --color-tum-blue-dark: #005293;
+  --color-tum-blue-light: #64a0c8;
+  --color-tum-blue-lighter: #98c6ea;
+  --color-tum-gray: #999999;
+  --color-tum-orange: #e37222;
+  --color-tum-green: #a2ad00;
+  --font-sans:
+    'Inter', ui-sans-serif, system-ui, -apple-system, sans-serif;
+}
+
+body {
+  @apply bg-white text-gray-900;
+}
+
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
+}
+
+@media print {
+  @page {
+    size: A4;
+    margin: 12mm;
+  }
+
+  * {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  html,
+  body {
+    background: white;
+  }
+}
