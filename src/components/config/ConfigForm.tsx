@@ -133,8 +133,12 @@ export function ConfigForm() {
         />
         <FieldError message={errors.teamCount?.message} />
 
-        <label className="mt-2 flex items-center gap-2 text-sm text-gray-700">
-          <input type="checkbox" className="rounded border-gray-300 text-tum-blue" {...register('customNumbering')} />
+        <label className="mt-2 flex cursor-pointer items-center gap-2 text-sm text-gray-700">
+          <input
+            type="checkbox"
+            className="h-4 w-4 shrink-0 rounded border-gray-400 text-tum-blue focus:ring-1 focus:ring-tum-blue focus:ring-offset-0"
+            {...register('customNumbering')}
+          />
           Boote sind nicht durchgehend nummeriert
         </label>
 
