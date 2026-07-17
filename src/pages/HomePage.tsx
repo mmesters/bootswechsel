@@ -4,8 +4,8 @@ import { Card } from '../components/ui/Card'
 
 export function HomePage() {
   return (
-    <div className="grid gap-6 md:grid-cols-[minmax(280px,360px)_1fr]">
-      <Card>
+    <div className="grid gap-6 md:grid-cols-[minmax(280px,360px)_1fr] print:block">
+      <Card className="print:hidden">
         <h2 className="mb-4 text-lg font-semibold text-gray-900">Konfiguration</h2>
         <ConfigForm />
       </Card>

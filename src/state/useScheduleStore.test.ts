@@ -44,4 +44,17 @@ describe('useScheduleStore', () => {
     expect(stored).not.toBeNull()
     expect(JSON.parse(stored ?? '{}').state.result.boatLabels).toEqual(['1', '2'])
   })
+
+  it('setRegattaName() updates and persists the regatta name', () => {
+    useScheduleStore.getState().setRegattaName('Vereinsregatta 2026')
+    expect(useScheduleStore.getState().regattaName).toBe('Vereinsregatta 2026')
+    const stored = window.localStorage.getItem('bootswechsel:last')
+    expect(JSON.parse(stored ?? '{}').state.regattaName).toBe('Vereinsregatta 2026')
+  })
+
+  it('reset() also clears the regatta name', () => {
+    useScheduleStore.getState().setRegattaName('Vereinsregatta 2026')
+    useScheduleStore.getState().reset()
+    expect(useScheduleStore.getState().regattaName).toBe('')
+  })
 })
