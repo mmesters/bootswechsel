@@ -36,4 +36,11 @@ body {
   body {
     background: white;
   }
+
+  /* Tailwind's break-inside-avoid only sets the modern `break-inside` property;
+     add the legacy alias too so older print engines also never split a lottery
+     slip across a page boundary. */
+  .break-inside-avoid {
+    page-break-inside: avoid;
+  }
 }
