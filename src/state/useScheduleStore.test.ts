@@ -57,4 +57,18 @@ describe('useScheduleStore', () => {
     useScheduleStore.getState().reset()
     expect(useScheduleStore.getState().regattaName).toBe('')
   })
+
+  it('setConfig() updates and persists the raw form config', () => {
+    const config = { customNumbering: false, teamCount: '12', boatListRaw: '', raceCount: '5' }
+    useScheduleStore.getState().setConfig(config)
+    expect(useScheduleStore.getState().config).toEqual(config)
+    const stored = window.localStorage.getItem('bootswechsel:last')
+    expect(JSON.parse(stored ?? '{}').state.config).toEqual(config)
+  })
+
+  it('reset() also clears the config', () => {
+    useScheduleStore.getState().setConfig({ customNumbering: false, teamCount: '12', boatListRaw: '', raceCount: '5' })
+    useScheduleStore.getState().reset()
+    expect(useScheduleStore.getState().config).toBeNull()
+  })
 })

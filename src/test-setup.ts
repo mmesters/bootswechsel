@@ -1,4 +1,12 @@
 import '@testing-library/jest-dom/vitest'
+import { cleanup } from '@testing-library/react'
+import { afterEach } from 'vitest'
+
+// Not using vitest's `globals: true`, so React Testing Library's auto-cleanup (which relies on
+// detecting a global afterEach) doesn't kick in on its own — register it explicitly instead.
+afterEach(() => {
+  cleanup()
+})
 
 // Node 22+'s built-in `localStorage` shadows jsdom's and throws without a
 // `--localstorage-file` flag. Replace it with a plain in-memory Storage for tests.

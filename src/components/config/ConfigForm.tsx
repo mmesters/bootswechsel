@@ -1,4 +1,4 @@
-import { type ReactNode, useEffect, useRef } from 'react'
+import { type ReactNode, useEffect, useRef, useState } from 'react'
 import { type Resolver, useForm } from 'react-hook-form'
 import { cn } from '../../lib/cn'
 import {
@@ -40,6 +40,16 @@ function toScheduleConfig(values: RawFormValues) {
   }
 }
 
+/** The fields that actually affect the generated schedule — everything in RawFormValues except regattaName. */
+function toScheduleFields(values: RawFormValues): Omit<RawFormValues, 'regattaName'> {
+  return {
+    customNumbering: values.customNumbering,
+    teamCount: values.teamCount,
+    boatListRaw: values.boatListRaw,
+    raceCount: values.raceCount,
+  }
+}
+
 /** Wraps configFormSchema as a react-hook-form resolver without fighting zod's coerce-input typing. */
 const resolver: Resolver<RawFormValues> = (values) => {
   const result = configFormSchema.safeParse(toScheduleConfig(values))
@@ -70,18 +80,37 @@ function Collapsible({ open, children }: { open: boolean; children: ReactNode })
 export function ConfigForm() {
   const generate = useScheduleStore((s) => s.generate)
   const setRegattaName = useScheduleStore((s) => s.setRegattaName)
+  const setConfig = useScheduleStore((s) => s.setConfig)
+  // Read these only once, as the initial snapshot for this mount — restoring the form (and
+  // skipping an unwanted regeneration below) when ConfigForm remounts, e.g. after navigating to
+  // /lottery-slips and back, instead of resetting to hardcoded defaults and losing the plan.
+  const [initial] = useState(() => {
+    const { config, regattaName, result } = useScheduleStore.getState()
+    return {
+      values: config ? { ...config, regattaName } : DEFAULT_VALUES,
+      hadExistingResult: result !== null,
+    }
+  })
+
   const {
     register,
     watch,
     formState: { errors },
   } = useForm<RawFormValues>({
     resolver,
-    defaultValues: DEFAULT_VALUES,
+    defaultValues: initial.values,
     mode: 'onChange',
   })
 
   const values = watch()
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  // What the store currently reflects — lets a remount (or React StrictMode's dev-only double
+  // effect invocation on mount) recognize "nothing actually changed" and skip regenerating,
+  // instead of comparing against a one-shot flag that a double-invoke would just consume once
+  // and then wrongly regenerate on the (harmless) second invocation.
+  const lastCommittedRef = useRef<Omit<RawFormValues, 'regattaName'> | null>(
+    initial.hadExistingResult ? toScheduleFields(initial.values) : null,
+  )
 
   useEffect(() => {
     setRegattaName(values.regattaName)
@@ -89,16 +118,29 @@ export function ConfigForm() {
 
   useEffect(() => {
     if (debounceRef.current) clearTimeout(debounceRef.current)
+
+    const last = lastCommittedRef.current
+    const unchangedSinceLastCommit =
+      last !== null &&
+      values.customNumbering === last.customNumbering &&
+      values.teamCount === last.teamCount &&
+      values.boatListRaw === last.boatListRaw &&
+      values.raceCount === last.raceCount
+    if (unchangedSinceLastCommit) return
+
     debounceRef.current = setTimeout(() => {
       const result = configFormSchema.safeParse(toScheduleConfig(values))
       if (!result.success) return
+      const committed = toScheduleFields(values)
+      lastCommittedRef.current = committed
+      setConfig(committed)
       generate(resolveBoatLabels(result.data), result.data.raceCount)
     }, RECOMPUTE_DEBOUNCE_MS)
     return () => {
       if (debounceRef.current) clearTimeout(debounceRef.current)
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [values.customNumbering, values.teamCount, values.boatListRaw, values.raceCount, generate])
+  }, [values.customNumbering, values.teamCount, values.boatListRaw, values.raceCount, generate, setConfig])
 
   const raceCountNumber = Number(values.raceCount)
 
